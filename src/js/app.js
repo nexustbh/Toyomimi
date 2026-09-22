@@ -125,7 +125,7 @@ class App {
         // Show engine picker on first launch
         this._maybeShowEnginePicker();
 
-        console.log('🌐 My Translator v0.7.1 initialized');
+        console.log('🌐 Toyomimi initialized');
     }
 
     async _checkPlatformSupport() {
@@ -3311,11 +3311,11 @@ class App {
         // GitHub links
         document.getElementById('link-github')?.addEventListener('click', (e) => {
             e.preventDefault();
-            window.__TAURI__?.opener?.openUrl('https://github.com/phuc-nt/my-translator');
+            window.__TAURI__?.opener?.openUrl('https://github.com/nexustbh/Toyomimi');
         });
         document.getElementById('link-issues')?.addEventListener('click', (e) => {
             e.preventDefault();
-            window.__TAURI__?.opener?.openUrl('https://github.com/phuc-nt/my-translator/issues');
+            window.__TAURI__?.opener?.openUrl('https://github.com/nexustbh/Toyomimi/issues');
         });
 
         // Check for Updates button

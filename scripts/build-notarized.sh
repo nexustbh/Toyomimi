@@ -4,8 +4,8 @@
 # Prerequisites:
 #   1. Developer ID Application cert installed (signingIdentity in tauri.conf.json).
 #   2. App-specific password stored via:
-#        xcrun notarytool store-credentials "my-translator" \
-#          --apple-id "phucnt0@gmail.com" --team-id "75EN938B6L"
+#        xcrun notarytool store-credentials "toyomimi" \
+#          --apple-id "<your Apple ID>" --team-id "<your Team ID>"
 #
 # Usage:  ./scripts/build-notarized.sh
 #
@@ -24,8 +24,8 @@ if [[ -f "$REPO_ROOT/.env" ]]; then
   set +a
 fi
 
-APPLE_ID="${APPLE_ID:-phucnt0@gmail.com}"
-APPLE_TEAM_ID="${APPLE_TEAM_ID:-75EN938B6L}"
+APPLE_ID="${APPLE_ID:?set APPLE_ID in .env}"
+APPLE_TEAM_ID="${APPLE_TEAM_ID:?set APPLE_TEAM_ID in .env}"
 
 if [[ -z "${APPLE_PASSWORD:-}" ]]; then
   echo "ERROR: APPLE_PASSWORD not set." >&2

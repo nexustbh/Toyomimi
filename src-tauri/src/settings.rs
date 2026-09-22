@@ -152,10 +152,10 @@ fn default_local_tts_speed() -> f32 {
 }
 
 /// Get the settings file path
-/// ~/Library/Application Support/com.personal.translator/settings.json
+/// ~/Library/Application Support/io.github.nexustbh.toyomimi/settings.json
 fn settings_path() -> PathBuf {
     let mut path = dirs::config_dir().unwrap_or_else(|| PathBuf::from("."));
-    path.push("com.personal.translator");
+    path.push("io.github.nexustbh.toyomimi");
     path.push("settings.json");
     path
 }

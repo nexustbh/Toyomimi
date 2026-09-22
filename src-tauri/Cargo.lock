@@ -2427,39 +2427,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "my-translator"
-version = "0.9.1"
-dependencies = [
- "base64 0.22.1",
- "bzip2",
- "chrono",
- "cpal",
- "dirs",
- "futures-util",
- "hex",
- "http",
- "rand 0.8.5",
- "reqwest 0.12.28",
- "rubato",
- "screencapturekit",
- "serde",
- "serde_json",
- "sha2",
- "sherpa-onnx",
- "tar",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "tauri-plugin-opener",
- "tauri-plugin-process",
- "tauri-plugin-updater",
- "tokio",
- "tokio-tungstenite",
- "uuid",
- "windows 0.58.0",
-]
-
-[[package]]
 name = "native-tls"
 version = "0.2.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5267,6 +5234,39 @@ name = "tower-service"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8df9b6e13f2d32c91b9bd719c00d1958837bc7dec474d94952798cc8e69eeec3"
+
+[[package]]
+name = "toyomimi"
+version = "0.10.0"
+dependencies = [
+ "base64 0.22.1",
+ "bzip2",
+ "chrono",
+ "cpal",
+ "dirs",
+ "futures-util",
+ "hex",
+ "http",
+ "rand 0.8.5",
+ "reqwest 0.12.28",
+ "rubato",
+ "screencapturekit",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sherpa-onnx",
+ "tar",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tauri-plugin-opener",
+ "tauri-plugin-process",
+ "tauri-plugin-updater",
+ "tokio",
+ "tokio-tungstenite",
+ "uuid",
+ "windows 0.58.0",
+]
 
 [[package]]
 name = "tracing"

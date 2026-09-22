@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "MyTranslator",
-  "version": "0.9.1",
-  "identifier": "com.personal.translator",
+  "productName": "Toyomimi",
+  "version": "0.10.0",
+  "identifier": "io.github.nexustbh.toyomimi",
   "build": {
     "frontendDist": "../src"
   },
@@ -12,7 +12,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "My Translator",
+        "title": "Toyomimi",
         "width": 900,
         "height": 500,
         "minWidth": 820,
@@ -46,15 +46,15 @@
       "entitlements": "Entitlements.plist",
       "frameworks": [],
       "minimumSystemVersion": "13.0",
-      "signingIdentity": "Developer ID Application: Trong Phuc Nguyen (75EN938B6L)"
+      "signingIdentity": "-"
     },
     "createUpdaterArtifacts": true
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQ1MkNFMzAxRUQ2QUY2OEMKUldTTTltcnRBZU1zUmJrb1VIaExodVBLb2JnSjlmL25neWttRlI4clYzSlhPMG1Vd2RQS2ZkNkwK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM2MEZBNzEwQTBBMTcyMEUKUldRT2NxR2dFS2NQeHVqV0ZMMys0Q2JXVjcwYjUyQ1ZCS1pMM1YwYy80NXBQUHFuMTZRc2dERUwK",
       "endpoints": [
-        "https://github.com/phuc-nt/my-translator/releases/latest/download/latest.json"
+        "https://github.com/nexustbh/Toyomimi/releases/latest/download/latest.json"
       ]
     }
   }

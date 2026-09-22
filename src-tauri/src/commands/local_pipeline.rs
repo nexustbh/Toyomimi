@@ -91,7 +91,7 @@ pub fn start_local_pipeline(
     // Use venv python if MLX setup is complete, otherwise fall back to system python
     let home = std::env::var("HOME").unwrap_or_else(|_| "/Users/phucnt".to_string());
     let venv_python = format!(
-        "{}/Library/Application Support/My Translator/mlx-env/bin/python3",
+        "{}/Library/Application Support/Toyomimi/mlx-env/bin/python3",
         home
     );
 
@@ -234,11 +234,11 @@ fn stop_local_pipeline_inner(state: &LocalPipelineState) {
 pub fn check_mlx_setup() -> Result<String, String> {
     let home = std::env::var("HOME").unwrap_or_else(|_| "/Users/phucnt".to_string());
     let marker = format!(
-        "{}/Library/Application Support/My Translator/mlx-env/.setup_complete",
+        "{}/Library/Application Support/Toyomimi/mlx-env/.setup_complete",
         home
     );
     let venv_python = format!(
-        "{}/Library/Application Support/My Translator/mlx-env/bin/python3",
+        "{}/Library/Application Support/Toyomimi/mlx-env/bin/python3",
         home
     );
 
