@@ -5,7 +5,8 @@
 ## 1. 现状
 
 - fork 自 `phuc-nt/my-translator` v0.9.1，已完成**改名**（名称 / identifier / 版本 / 自动更新 / 数据目录），功能代码未改。
-- Mac 本机可构建、可启动（`Toyomimi Dev.app`）。**还没用真实 Key 跑通过翻译。**
+- Mac 本机可构建、可启动（`Toyomimi Dev.app`）。
+- 2026-09-22 用测试脚本验证：**Qwen3.8（北京）连接与翻译正常**；Soniox Key 有效但账户余额为 0。App 内的 Qwen 仍是上游旧接入，**还不能直接用我们的北京 Key**（bugs B5）。
 - CI（`ci.yml`）每次 push 在 **macOS + Windows** 双平台做 `cargo check`。
 - 当前阶段：**第 0 阶段 · 验证**（见 [`PLAN.md`](PLAN.md)）。
 
@@ -56,6 +57,8 @@
 | 自动更新 | 端点 `github.com/nexustbh/Toyomimi/releases/latest/download/latest.json`；私钥 `~/.tauri/toyomimi.key`（**仓外、无密码、需备份**），公钥已写入 `tauri.conf.json` |
 | 工具链 | Rust 1.98.1（rustup，含 `x86_64-apple-darwin`）· node 本机 `~/.local/bin/node` · Xcode CLT |
 | 首次 Rust 构建 | 约 2 分钟；增量快得多 |
+| Qwen3.8 接入（已实测） | `wss://dashscope.aliyuncs.com/api-ws/v1/realtime?model=qwen3.8-livetranslate-flash-realtime`，头 `Authorization: Bearer` + `X-DashScope-WorkSpace`；协议见 bugs B5 与 `scripts/phase0/probe.py` |
+| 引擎实测 | `uv run --with websockets scripts/phase0/probe.py <音频> --engines qwen,soniox --seconds 60 --target zh` |
 
 ## 6. 常用命令
 

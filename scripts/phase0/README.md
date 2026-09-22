@@ -6,4 +6,4 @@
 - 测试音频放 `local/test-audio/`（gitignore），公开测试集片段可放 `scripts/phase0/fixtures/`（需确认许可）
 - 原始事件日志输出到 `out/phase0/`（gitignore），结论写进 `docs/toyomimi/phase0-report.md`
 
-_脚本待编写。_
+- `probe.py`：连接验证 + 延迟 / 译文 / 用量初测（见文件头用法）

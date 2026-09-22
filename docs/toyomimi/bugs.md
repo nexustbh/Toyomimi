@@ -24,3 +24,9 @@
 
 - **症状**：2026-09-22 首次 `open Toyomimi Dev.app`，进程在但没有窗口；杀掉后直接运行二进制，窗口正常出现。
 - **原因**：未确认（可能是首次启动的初始化或窗口出现在别的桌面空间）。复现时再查。
+
+## B5 · 上游的 Qwen 接入是旧模型、国际站，协议与 3.8 不兼容
+
+- **症状**：用北京地域的 Key 连不上 / 3.8 模型报错。
+- **原因**：`src-tauri/src/commands/qwen_realtime.rs` 写死 `dashscope-intl`（新加坡）+ `qwen3-livetranslate-flash-realtime`（旧模型）。3.8 的协议变了：`session.update` 用 `output_modalities`（不是 `modalities`），必须带 `audio.output.voice`（否则默认音色报 400）；原文走 `conversation.item.input_audio_transcription.delta/.completed`，译文走 `response.text.delta/.done`（旧版是 `response.text.text`）；源语言可以省略（自动识别）。
+- **解法**：第 1 阶段重写 Qwen 接入：地域可选（北京 `dashscope.aliyuncs.com` / 新加坡 `dashscope-intl.aliyuncs.com`），协议按 `scripts/phase0/probe.py` 已验证的版本。参考实现：`huankechong/QwenLiveTranslate`（MIT）的 `realtime_client.py`。
