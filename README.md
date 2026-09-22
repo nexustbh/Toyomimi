@@ -1,3 +1,16 @@
+> ## 🎌 Toyomimi（豊聡耳）
+>
+> *Like Prince Shōtoku, who understood ten petitioners speaking at once.*
+>
+> **Toyomimi** is a fork of [phuc-nt/my-translator](https://github.com/phuc-nt/my-translator) (MIT) focused on **multi-party cross-language meetings** and **video watching**: every participant's app translates what comes out of their speakers into *their own* language — no shared protocol needed.
+> Planned additions: Qwen3.8-LiveTranslate (speaker labels, hot words), CN / international region config, Chinese UI. See [`docs/toyomimi/PLAN.md`](docs/toyomimi/PLAN.md).
+>
+> 🚧 Early stage — no Toyomimi release yet. Everything below is the upstream README, kept as-is. All credit for the original app goes to its authors.
+>
+> <sub>规划与决策文档在 PKB：`10-Projects/Vibe Coding/vibe-Toyomimi/`</sub>
+
+---
+
 <p align="center">
   <img src="banner.png?v=2" alt="My Translator — Real-time Speech Translation">
 </p>

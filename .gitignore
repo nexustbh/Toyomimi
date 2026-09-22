@@ -38,8 +38,7 @@ src-tauri/gen/
 scripts/__pycache__/
 test_audio.wav
 
-# Agent configs (internal)
-CLAUDE.md
+# Agent configs (internal) — Toyomimi: CLAUDE.md is tracked (engineering rules only)
 GEMINI.md
 
 # Internal dev files (private repo only)
@@ -62,7 +61,6 @@ scripts/test_*.py
 # Private files (dev-logs, agent instructions, internal docs)
 .private/
 GEMINI.md
-CLAUDE.md
 CLAUDE.local.md
 
 # Local test fixtures (large media)
@@ -73,3 +71,13 @@ live-test/
 .env.local
 _drafts
 tts-models/
+
+# ── Toyomimi baseline (Vibe Coding SOP) ──
+.env.*
+!.env.example
+local/
+out/
+build/
+__pycache__/
+*.pyc
+.venv/
