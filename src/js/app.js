@@ -1945,7 +1945,7 @@ class App {
             soniox: 'Cloud · 70+ languages · ~$0.12/hr',
             local: 'Offline · free · ~3–4s delay',
             openai: 'Cloud · 13 languages · text-only captions',
-            qwen: 'Cloud · 60+ languages · text-only · free preview · pick a source language',
+            qwen: 'Cloud · 60+ languages · text-only · Qwen3.8 (Beijing)',
         };
         if (hintSoniox) {
             hintSoniox.textContent = ENGINE_HINTS[mode] || '';

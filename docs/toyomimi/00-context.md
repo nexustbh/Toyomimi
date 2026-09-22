@@ -6,7 +6,7 @@
 
 - fork 自 `phuc-nt/my-translator` v0.9.1，已完成**改名**（名称 / identifier / 版本 / 自动更新 / 数据目录），功能代码未改。
 - Mac 本机可构建、可启动（`Toyomimi Dev.app`）。
-- 2026-09-22 用测试脚本验证：**Qwen3.8（北京）连接与翻译正常**；Soniox Key 有效但账户余额为 0。App 内的 Qwen 仍是上游旧接入，**还不能直接用我们的北京 Key**（bugs B5）。
+- 2026-09-22 用测试脚本验证：**Qwen3.8（北京）连接与翻译正常**；Soniox Key 有效但账户余额为 0。App 内的 Qwen 已改为 3.8 + 北京地域（bugs B5），在设置里填 Key 即可用。
 - CI（`ci.yml`）每次 push 在 **macOS + Windows** 双平台做 `cargo check`。
 - 当前阶段：**第 0 阶段 · 验证**（见 [`PLAN.md`](PLAN.md)）。
 

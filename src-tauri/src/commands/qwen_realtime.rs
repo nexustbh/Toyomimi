@@ -1,21 +1,19 @@
-// Qwen LiveTranslate Flash realtime translation provider — backend WS bridge.
+// Qwen3.8-LiveTranslate-Flash realtime translation provider — backend WS bridge.
 //
-// Mirrors `my-translator-mobile` v0.4.3 client (see
-// my-translator-mobile/src/engines/qwen-realtime-client.ts).
+// Toyomimi: rewritten 2026-09-22 for qwen3.8 (protocol verified by
+// scripts/phase0/probe.py against the cn-beijing endpoint; see docs/toyomimi/bugs.md B5).
 //
 // Key facts:
-//   - WS URL: dashscope-intl + ?model=qwen3-livetranslate-flash-realtime
-//   - Audio in: pcm16 @ 16kHz mono (no resampling — Soniox pipeline native rate)
-//   - Server-VAD only. Manual input_audio_buffer.commit / response.create are
-//     rejected by Live Flash — server segments turns on its own.
-//   - Text-only modality. No TTS playback (would loop back into mic).
-//   - Source language MUST be explicit. "auto" falls back to "en" — Live Flash
-//     auto-detect stalls after a single segment on real-device mic input.
-//   - No source transcript: Live Flash only exposes translation. Drop dual-panel
-//     source side when this engine is active.
+//   - WS URL: dashscope.aliyuncs.com (cn-beijing, default) or dashscope-intl
+//     (ap-southeast-1) + ?model=qwen3.8-livetranslate-flash-realtime
+//   - Audio in: pcm16 @ 16kHz mono
+//   - Server-VAD only; the server segments turns on pauses.
+//   - session.update is sent AFTER session.created, uses `output_modalities`
+//     and MUST set audio.output.voice (default voice is rejected with 400).
+//   - Source language: "auto"/empty → omitted (server auto-detects).
 //
-// Event mapping (verified via mobile probe 2026-05-25):
-//   response.text.text  → Transcript(is_final=false, text=committed+stash)
+// Event mapping:
+//   response.text.delta → Transcript(is_final=false, text=accumulated snapshot)
 //   response.text.done  → Transcript(is_final=true,  text=final)
 //   error               → Error
 
@@ -30,16 +28,30 @@ use tauri::State;
 use tokio::sync::mpsc;
 use tokio_tungstenite::{connect_async, tungstenite::Message};
 
-const QWEN_REALTIME_URL: &str =
-    "wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime?model=qwen3-livetranslate-flash-realtime";
+const QWEN_MODEL: &str = "qwen3.8-livetranslate-flash-realtime";
+/// Output voice must be explicit even in text-only mode (server default is rejected).
+const QWEN_VOICE: &str = "Tina";
+
+fn qwen_host(region: Option<&str>) -> &'static str {
+    match region {
+        Some("ap-southeast-1") | Some("intl") => "dashscope-intl.aliyuncs.com",
+        _ => "dashscope.aliyuncs.com", // cn-beijing (default)
+    }
+}
 
 #[derive(Debug, Deserialize)]
 pub struct QwenRealtimeConfig {
     pub api_key: String,
-    /// BCP-47-ish code (e.g. "en", "ja"). "auto" or empty → fallback "en".
+    /// BCP-47-ish code (e.g. "en", "ja"). "auto" or empty → server auto-detect.
     pub source_language: String,
     /// BCP-47-ish code (e.g. "vi"). Sent as `translation.language`.
     pub target_language: String,
+    /// "cn-beijing" (default) or "ap-southeast-1".
+    #[serde(default)]
+    pub region: Option<String>,
+    /// Optional DashScope workspace id (sent as X-DashScope-WorkSpace).
+    #[serde(default)]
+    pub workspace_id: Option<String>,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -154,10 +166,12 @@ async fn run_session(
     mut stop_rx: mpsc::UnboundedReceiver<()>,
     event_ch: Channel<QwenEvent>,
 ) -> Result<(), String> {
-    let request = Request::builder()
-        .uri(QWEN_REALTIME_URL)
-        .header("Authorization", format!("Bearer {}", cfg.api_key))
-        .header("Host", "dashscope-intl.aliyuncs.com")
+    let host = qwen_host(cfg.region.as_deref());
+    let url = format!("wss://{}/api-ws/v1/realtime?model={}", host, QWEN_MODEL);
+    let mut builder = Request::builder()
+        .uri(url)
+        .header("Authorization", format!("Bearer {}", cfg.api_key.trim()))
+        .header("Host", host)
         .header("Connection", "Upgrade")
         .header("Upgrade", "websocket")
         .header("Sec-WebSocket-Version", "13")
@@ -165,6 +179,11 @@ async fn run_session(
             "Sec-WebSocket-Key",
             tokio_tungstenite::tungstenite::handshake::client::generate_key(),
         )
+        ;
+    if let Some(ws_id) = cfg.workspace_id.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+        builder = builder.header("X-DashScope-WorkSpace", ws_id);
+    }
+    let request = builder
         .body(())
         .map_err(|e| format!("build request: {}", e))?;
 
@@ -173,6 +192,25 @@ async fn run_session(
         .map_err(|e| format!("websocket connect: {}", e))?;
 
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
+
+    // qwen3.8: wait for session.created before configuring the session.
+    loop {
+        match tokio::time::timeout(std::time::Duration::from_secs(15), ws_stream.next()).await {
+            Ok(Some(Ok(Message::Text(text)))) => {
+                if text.contains("\"session.created\"") {
+                    break;
+                }
+                if text.contains("\"error\"") {
+                    handle_server_event(&text, &event_ch, &mut None, &mut HashMap::new());
+                    return Err("server rejected session".into());
+                }
+            }
+            Ok(Some(Ok(_))) => {}
+            Ok(Some(Err(e))) => return Err(format!("ws error: {}", e)),
+            Ok(None) => return Err("connection closed before session.created".into()),
+            Err(_) => return Err("timeout waiting for session.created".into()),
+        }
+    }
 
     let session_update = build_session_update(&cfg);
     ws_sink
@@ -189,6 +227,8 @@ async fn run_session(
     // and audio_transcript streams complete. With modalities=["text"] this
     // shouldn't happen, but keep the guard — cheap insurance, matches mobile.
     let mut last_done_response_id: Option<String> = None;
+    // Accumulated translation deltas per response_id (qwen3.8 streams deltas).
+    let mut partials: HashMap<String, String> = HashMap::new();
 
     loop {
         tokio::select! {
@@ -213,7 +253,7 @@ async fn run_session(
             msg = ws_stream.next() => {
                 match msg {
                     Some(Ok(Message::Text(text))) => {
-                        handle_server_event(&text, &event_ch, &mut last_done_response_id);
+                        handle_server_event(&text, &event_ch, &mut last_done_response_id, &mut partials);
                     }
                     Some(Ok(Message::Binary(_))) => {}
                     Some(Ok(Message::Close(frame))) => {
@@ -235,22 +275,15 @@ async fn run_session(
 }
 
 fn build_session_update(cfg: &QwenRealtimeConfig) -> String {
-    // Live Flash rejects "auto" for source. Empty / "auto" → "en" fallback
-    // (mirrors mobile client onopen handler).
-    let source = if cfg.source_language.is_empty() || cfg.source_language == "auto" {
-        "en"
-    } else {
-        cfg.source_language.as_str()
-    };
-
-    let session = serde_json::json!({
-        "modalities": ["text"],
-        "input_audio_format": "pcm",
-        "input_audio_transcription": { "language": source },
+    let mut session = serde_json::json!({
+        "output_modalities": ["text"],
         "translation": { "language": cfg.target_language },
-        // VAD is server-side — manual commits rejected on Live Flash.
-        "turn_detection": serde_json::Value::Null,
+        "audio": { "output": { "voice": QWEN_VOICE } },
     });
+    let source = cfg.source_language.trim();
+    if !source.is_empty() && source != "auto" {
+        session["input_audio_transcription"] = serde_json::json!({ "language": source });
+    }
 
     serde_json::json!({
         "type": "session.update",
@@ -263,6 +296,7 @@ fn handle_server_event(
     text: &str,
     event_ch: &Channel<QwenEvent>,
     last_done_response_id: &mut Option<String>,
+    partials: &mut HashMap<String, String>,
 ) {
     let value: serde_json::Value = match serde_json::from_str(text) {
         Ok(v) => v,
@@ -279,15 +313,19 @@ fn handle_server_event(
     match evt_type {
         "session.created" | "session.updated" | "response.created" | "response.done" => {}
 
-        "response.text.text" => {
-            // Live Flash streams via text (committed) + stash (pending).
-            // Full provisional snapshot = text + stash. Emit on every tick.
-            let committed = value.get("text").and_then(|v| v.as_str()).unwrap_or("");
-            let stash = value.get("stash").and_then(|v| v.as_str()).unwrap_or("");
-            let snapshot = format!("{}{}", committed, stash);
-            if !snapshot.is_empty() {
+        "response.text.delta" => {
+            // qwen3.8 streams translation as deltas; UI expects a full snapshot.
+            let rid = value
+                .get("response_id")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+            let delta = value.get("delta").and_then(|v| v.as_str()).unwrap_or("");
+            let acc = partials.entry(rid).or_default();
+            acc.push_str(delta);
+            if !acc.is_empty() {
                 let _ = event_ch.send(QwenEvent::Transcript {
-                    text: snapshot,
+                    text: acc.clone(),
                     is_final: false,
                 });
             }
@@ -306,9 +344,14 @@ fn handle_server_event(
                     return;
                 }
             }
+            let accumulated = response_id.as_ref().and_then(|rid| partials.remove(rid));
             *last_done_response_id = response_id;
 
-            let t = value.get("text").and_then(|v| v.as_str());
+            let t = value
+                .get("text")
+                .and_then(|v| v.as_str())
+                .filter(|t| !t.is_empty())
+                .or(accumulated.as_deref());
             if let Some(t) = t {
                 eprintln!(
                     "[qwen-livetranslate] DONE: {}",
@@ -335,6 +378,12 @@ fn handle_server_event(
                 .unwrap_or("")
                 .to_string();
             let _ = event_ch.send(QwenEvent::Error { code, message: msg });
+        }
+
+        "response.cancelled" | "response.failed" | "response.incomplete" => {
+            if let Some(rid) = value.get("response_id").and_then(|v| v.as_str()) {
+                partials.remove(rid);
+            }
         }
 
         _ => {}
