@@ -36,10 +36,11 @@ npm run lint         # cargo clippy
 1. **秘钥只进 `.env`（已 gitignore）或 App 设置界面**，绝不写进代码、文档、commit。本仓公开，泄露即作废——换 Key，别指望删 commit。
 2. **提交前必看 `git status`**：确认 `.env`、`local/` 没进暂存区。私有测试音频、会议录音一律放 `local/`。
 3. **不动上游的 `LICENSE` 与原作者署名。** 我们的新增说明写在 README 顶部的 Toyomimi 区块和 `docs/toyomimi/`。
-4. **⚠️ 发布前必须改掉上游的身份信息**：`src-tauri/tauri.conf.json` 里的 `productName` / `identifier` / updater `endpoints` 与 `pubkey` 仍指向 my-translator。不改 = 我们的 App 会自动更新成上游的版本。（第 1 阶段任务，见 `docs/toyomimi/PLAN.md`）
-5. **引擎可插拔是核心设计**：新引擎按现有 client 的事件形状接入（原文/译文 × 临时/最终、说话人、用量、错误），不在 UI 层写引擎特判。
-6. **批量脚本用 `python3` 或 node**，不用 bash 关联数组。
-7. **测量先于结论**：引擎延迟 / 质量 / 成本的任何说法，要有 `scripts/phase0/` 的实测数据或注明「厂商宣称」。
+4. **身份已改为 Toyomimi**（`io.github.nexustbh.toyomimi`，更新端点与公钥都指向我们）。**不要改回、不要从上游合并覆盖 `tauri.conf.json` 的这些字段**；从 `upstream` 合并时逐项核对。
+5. **Mac + Windows 通用是选 Tauri 的原因**：先把 Mac 做好，但**每次提交都要让 Windows 能编译**（CI `ci.yml` 会查）。平台相关代码只能写在 `#[cfg(target_os = ...)]` 里，跨平台地图见 `docs/toyomimi/00-context.md` §3。
+6. **引擎可插拔是核心设计**：新引擎按现有 client 的事件形状接入（原文/译文 × 临时/最终、说话人、用量、错误），不在 UI 层写引擎特判。
+7. **批量脚本用 `python3` 或 node**，不用 bash 关联数组。
+8. **测量先于结论**：引擎延迟 / 质量 / 成本的任何说法，要有 `scripts/phase0/` 的实测数据或注明「厂商宣称」。
 
 ## 协作约定
 
